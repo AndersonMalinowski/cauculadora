@@ -4,7 +4,86 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+        
+        .calculator {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            width: 320px;
+        }
+        
+        .display {
+            background-color: #f9f9f9;
+            color: #333;
+            font-size: 3em;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: right;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 20px;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+        }
+        
+        .number, .zero {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+        
+        .operator {
+            background-color: #ff9500;
+            color: #fff;
+        }
+        
+        .equal {
+            background-color: #5cb85c;
+            color: #fff;
+            grid-column: span 2;
+        }
+        
+        .clear {
+            background-color: #d9534f;
+            color: #fff;
+            grid-column: span 2;
+        }
+        
+        .zero {
+            grid-column: span 2;
+        }
+    </style>
 </head>
 <body>
 
@@ -37,6 +116,66 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const display = document.getElementById('display');
+            const buttons = document.querySelectorAll('.btn');
+        
+            let currentInput = '0';
+            let expression = '';
+        
+            const updateDisplay = (value) => {
+                display.textContent = value;
+            };
+        
+            const isOperator = (char) => {
+                return ['+', '-', '*', '/'].includes(char);
+            };
+        
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const value = button.getAttribute('data-value');
+        
+                    if (value === 'C') {
+                        expression = '';
+                        currentInput = '0';
+                        updateDisplay(currentInput);
+                        return;
+                    }
+        
+                    if (value === 'backspace') {
+                        expression = expression.slice(0, -1);
+                        currentInput = expression || '0';
+                        updateDisplay(currentInput);
+                        return;
+                    }
+        
+                    if (value === '=') {
+                        try {
+                            const result = eval(expression);
+                            currentInput = result;
+                            expression = String(result);
+                            updateDisplay(currentInput);
+                        } catch (error) {
+                            currentInput = 'Erro';
+                            expression = '';
+                            updateDisplay(currentInput);
+                        }
+                        return;
+                    }
+        
+                    if (isOperator(value) && isOperator(expression.slice(-1))) {
+                        expression = expression.slice(0, -1) + value;
+                    } else if (expression === '0' && !isOperator(value)) {
+                         expression = value;
+                    } else {
+                        expression += value;
+                    }
+        
+                    updateDisplay(expression);
+                });
+            });
+        });
+    </script>
 </body>
 </html>
