@@ -33,17 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (value === '=') {
                 try {
-                    // Substitui funções científicas para serem avaliadas
-                    let finalExpression = expression.replace(/sin\(/g, 'Math.sin(Math.PI / 180 * ');
-                    finalExpression = finalExpression.replace(/cos\(/g, 'Math.cos(Math.PI / 180 * ');
-                    finalExpression = finalExpression.replace(/tan\(/g, 'Math.tan(Math.PI / 180 * ');
-                    finalExpression = finalExpression.replace(/log\(/g, 'Math.log10(');
-                    finalExpression = finalExpression.replace(/sqrt\(/g, 'Math.sqrt(');
-                    finalExpression = finalExpression.replace(/\^/g, '**');
-                    finalExpression = finalExpression.replace(/pi/g, 'Math.PI');
-                    finalExpression = finalExpression.replace(/e/g, 'Math.E');
-
-                    const result = eval(finalExpression);
+                    const result = eval(expression);
                     currentInput = result;
                     expression = String(result);
                     updateDisplay(currentInput);
@@ -55,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Lógica para evitar operadores duplicados e outros erros
+            // Lógica para evitar operadores duplicados
             if (isOperator(value) && isOperator(expression.slice(-1))) {
                 expression = expression.slice(0, -1) + value;
             } else if (expression === '0' && !isOperator(value)) {
