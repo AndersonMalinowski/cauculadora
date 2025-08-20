@@ -1,94 +1,70 @@
-// Importa a biblioteca math.js para parsing seguro de expressões matemáticas
-// Carregada via CDN no HTML (adicionar <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.0.0/math.min.js"></script> no HTML)
-const display = document.getElementById('display');
+document.addEventListener('DOMContentLoaded', () => {
+    const display = document.getElementById('display');
+    const buttons = document.querySelectorAll('.btn');
 
-// Adiciona um caractere ou operador ao display
-function appendToDisplay(value) {
-    // Valida entrada para evitar caracteres inválidos
-    const validInputs = /[0-9.+\-*/()]/;
-    if (validInputs.test(value) || value === '') {
-        display.value += value;
-    }
-}
+    let currentInput = '0';
+    let expression = '';
 
-// Limpa o display
-function clearDisplay() {
-    display.value = '';
-}
+    const updateDisplay = (value) => {
+        display.textContent = value;
+    };
 
-// Aplica funções científicas ao valor atual no display
-function applyFunction(func) {
-    try {
-        const currentValue = display.value || '0'; // Usa '0' como fallback para display vazio
-        switch (func) {
-            case 'sin':
-                display.value = `sin(${currentValue})`;
-                break;
-            case 'cos':
-                display.value = `cos(${currentValue})`;
-                break;
-            case 'tan':
-                display.value = `tan(${currentValue})`;
-                break;
-            case 'sqrt':
-                display.value = `sqrt(${currentValue})`;
-                break;
-            case 'pow':
-                display.value = `pow(${currentValue}, 2)`;
-                break;
-            default:
-                display.value = 'Erro';
-        }
-    } catch (error) {
-        display.value = 'Erro';
-        console.error('Erro ao aplicar função:', error);
-    }
-}
+    const isOperator = (char) => {
+        return ['+', '-', '*', '/', '%'].includes(char);
+    };
 
-// Calcula a expressão no display usando math.js
-function calculate() {
-    try {
-        // Substitui símbolos para compatibilidade com math.js
-        let expression = display.value
-            .replace(/÷/g, '/')
-            .replace(/×/g, '*');
-        
-        // Usa math.js para avaliar a expressão de forma segura
-        const result = math.evaluate(expression);
-        
-        // Verifica se o resultado é válido
-        if (typeof result === 'number' && isFinite(result)) {
-            display.value = result.toFixed(4); // Limita a 4 casas decimais
-        } else {
-            display.value = 'Erro';
-        }
-    } catch (error) {
-        display.value = 'Erro';
-        console.error('Erro ao calcular:', error);
-    }
-}
+    buttons.forEach(button => {
+        button.addEventListener('click', () => {
+            const value = button.getAttribute('data-value');
 
-// Gerencia entrada via teclado
-function handleKeyboardInput(event) {
-    const key = event.key;
-    
-    // Números, operadores e ponto
-    if (/[0-9.]|[+\-*/]/.test(key)) {
-        appendToDisplay(key);
-    }
-    // Enter para calcular
-    else if (key === 'Enter') {
-        calculate();
-    }
-    // Escape para limpar
-    else if (key === 'Escape') {
-        clearDisplay();
-    }
-    // Backspace para apagar o último caractere
-    else if (key === 'Backspace') {
-        display.value = display.value.slice(0, -1);
-    }
-}
+            if (value === 'C') {
+                expression = '';
+                currentInput = '0';
+                updateDisplay(currentInput);
+                return;
+            }
 
-// Adiciona o evento de teclado
-document.addEventListener('keydown', handleKeyboardInput);
+            if (value === 'backspace') {
+                expression = expression.slice(0, -1);
+                currentInput = expression || '0';
+                updateDisplay(currentInput);
+                return;
+            }
+
+            if (value === '=') {
+                try {
+                    // Substitui funções científicas para serem avaliadas
+                    let finalExpression = expression.replace(/sin\(/g, 'Math.sin(Math.PI / 180 * ');
+                    finalExpression = finalExpression.replace(/cos\(/g, 'Math.cos(Math.PI / 180 * ');
+                    finalExpression = finalExpression.replace(/tan\(/g, 'Math.tan(Math.PI / 180 * ');
+                    finalExpression = finalExpression.replace(/log\(/g, 'Math.log10(');
+                    finalExpression = finalExpression.replace(/sqrt\(/g, 'Math.sqrt(');
+                    finalExpression = finalExpression.replace(/\^/g, '**');
+                    finalExpression = finalExpression.replace(/pi/g, 'Math.PI');
+                    finalExpression = finalExpression.replace(/e/g, 'Math.E');
+
+                    const result = eval(finalExpression);
+                    currentInput = result;
+                    expression = String(result);
+                    updateDisplay(currentInput);
+                } catch (error) {
+                    currentInput = 'Erro';
+                    expression = '';
+                    updateDisplay(currentInput);
+                }
+                return;
+            }
+
+            // Lógica para evitar operadores duplicados e outros erros
+            if (isOperator(value) && isOperator(expression.slice(-1))) {
+                expression = expression.slice(0, -1) + value;
+            } else if (expression === '0' && !isOperator(value)) {
+                 expression = value;
+            } else {
+                expression += value;
+            }
+
+            updateDisplay(expression);
+        });
+    });
+});
